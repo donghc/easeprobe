@@ -21,6 +21,7 @@ package http
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net"
@@ -72,6 +73,11 @@ type HTTP struct {
 	traceStats *TraceStats `yaml:"-" json:"-"`
 
 	metrics *metrics `yaml:"-" json:"-"`
+
+	PreLogin  string `yaml:"pre_login" json:"pre_login"`
+	PreMethod string `yaml:"pre_method" json:"pre_method"`
+	PreUser   string `yaml:"pre_username" json:"pre_username"`
+	PrePass   string `yaml:"pre_password" json:"pre_password"`
 }
 
 func checkHTTPMethod(m string) bool {
@@ -174,6 +180,39 @@ func (h *HTTP) Config(gConf global.ProbeSettings) error {
 
 	h.metrics = newMetrics(kind, tag, h.Labels)
 
+	if h.PreLogin != "" {
+		//需要先登录才能获取下面的接口地址
+		m := make(map[string]string)
+		m["phone"] = h.PreUser
+		m["code"] = h.PrePass
+		l, err := json.Marshal(m)
+		req, err := http.NewRequest("POST", h.PreLogin, bytes.NewBuffer(l))
+		if err != nil {
+
+		}
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := h.client.Do(req)
+
+		defer resp.Body.Close()
+		all, err := io.ReadAll(resp.Body)
+		type Token struct {
+			Code   int    `json:"code"`
+			Msg    string `json:"msg"`
+			Result struct {
+				Token string `json:"token"`
+			} `json:"result"`
+		}
+		var token Token
+		json.Unmarshal(all, &token)
+		if h.Headers == nil {
+			h.Headers = make(map[string]string)
+			h.Headers["Authorization"] = token.Result.Token
+		} else {
+			h.Headers["Authorization"] = token.Result.Token
+		}
+
+	}
+
 	log.Debugf("[%s / %s] configuration: %+v", h.ProbeKind, h.ProbeName, *h)
 	return nil
 }
@@ -187,6 +226,7 @@ func (h *HTTP) DoProbe() (bool, string) {
 	if len(h.User) > 0 && len(h.Pass) > 0 {
 		req.SetBasicAuth(h.User, h.Pass)
 	}
+
 	if len(h.ContentEncoding) > 0 {
 		req.Header.Set("Content-Type", h.ContentEncoding)
 	}

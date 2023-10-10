@@ -1,0 +1,23 @@
+http:
+  - name: 敏感词接口
+    url: http://a.sykedaww.top:8080/tyson/us/user/v1/getUserWallet
+    method: GET
+    insecure: true
+    success_code:
+      # 配置允许的状态码范围 [200,206]
+      - [ 200 ] # the code >=200 and <= 206
+    contain: "\"code\":0"
+    pre_login: "http://a.sykedaww.top:8080/tyson/us/user/v1/login"
+    pre_username: "8888888888"
+    pre_password: ""
+notify: # 告警通知方式
+  dingtalk:
+    - name: "敏感词"
+      webhook: "https://oapi.dingtalk.com/robot/send?access_token=65107a6a6eb168615efdab131d9905511dd91e912cded6e3a9141b7b9d13c4f6a"
+# 全局配置
+settings:
+  probe:
+    timeout: 30s # the time out for all probes
+    interval: 1m # probe every minute for all probes
+  log:
+    level: debug
