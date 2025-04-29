@@ -310,8 +310,8 @@ func New(conf *string) (*Conf, error) {
 			IconURL:    global.DefaultIconURL,
 			PIDFile:    filepath.Join(global.GetWorkDir(), global.DefaultPIDFile),
 			Log:        NewLog(),
-			TimeFormat: "2006-01-02 15:04:05 UTC",
-			TimeZone:   "UTC",
+			TimeFormat: global.DefaultTimeFormat,
+			TimeZone:   global.DefaultTimeZone,
 			Probe: Probe{
 				Interval: global.DefaultProbeInterval,
 				Timeout:  global.DefaultTimeOut,
@@ -463,7 +463,6 @@ func allProbersHelper(i interface{}) []probe.Prober {
 		vField := v.Field(i)
 		for j := 0; j < vField.Len(); j++ {
 			if !isProbe(vField.Index(j).Addr().Type()) {
-				//log.Debugf("%s is not a probe type", vField.Index(j).Type())
 				continue
 			}
 

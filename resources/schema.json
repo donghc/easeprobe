@@ -4,18 +4,14 @@
   "$ref": "#/$defs/conf_Conf",
   "$defs": {
     "BastionMapType": {
-      "patternProperties": {
-        ".*": {
-          "$ref": "#/$defs/probe_ssh_Endpoint"
-        }
+      "additionalProperties": {
+        "$ref": "#/$defs/probe_ssh_Endpoint"
       },
       "type": "object"
     },
     "Labels": {
-      "patternProperties": {
-        ".*": {
-          "type": "string"
-        }
+      "additionalProperties": {
+        "type": "string"
       },
       "type": "object"
     },
@@ -213,12 +209,14 @@
       "properties": {
         "interval": {
           "type": "string",
+          "format": "duration",
           "title": "Probe Interval",
           "description": "the interval of probe",
           "default": "1m"
         },
         "timeout": {
           "type": "string",
+          "format": "duration",
           "title": "Probe Timeout",
           "description": "the timeout of probe",
           "default": "30s"
@@ -264,6 +262,7 @@
         },
         "time": {
           "type": "string",
+          "format": "time",
           "title": "Time",
           "description": "the time of SLA report need to send out",
           "examples": [
@@ -472,6 +471,7 @@
         },
         "interval": {
           "type": "string",
+          "format": "duration",
           "title": "Retry Interval",
           "description": "the interval between each retry"
         }
@@ -731,6 +731,7 @@
         },
         "secret": {
           "type": "string",
+          "format": "string",
           "title": "Secret",
           "description": "The Dingtalk Robot Secret"
         }
@@ -1259,6 +1260,7 @@
         },
         "webhook": {
           "type": "string",
+          "format": "url",
           "title": "Webhook URL",
           "description": "The Microsoft Teams Robot Webhook URL"
         }
@@ -1351,6 +1353,7 @@
         },
         "webhook": {
           "type": "string",
+          "format": "url",
           "title": "Webhook URL",
           "description": "The Webhook URL of Wecom"
         }
@@ -1379,11 +1382,13 @@
         },
         "timeout": {
           "type": "string",
+          "format": "duration",
           "title": "Probe Timeout",
           "description": "the timeout of probe"
         },
         "interval": {
           "type": "string",
+          "format": "duration",
           "title": "Probe Interval",
           "description": "the interval of probe"
         },
@@ -1452,10 +1457,8 @@
           ]
         },
         "data": {
-          "patternProperties": {
-            ".*": {
-              "type": "string"
-            }
+          "additionalProperties": {
+            "type": "string"
           },
           "type": "object",
           "title": "Data",
@@ -1530,11 +1533,13 @@
         },
         "timeout": {
           "type": "string",
+          "format": "duration",
           "title": "Probe Timeout",
           "description": "the timeout of probe"
         },
         "interval": {
           "type": "string",
+          "format": "duration",
           "title": "Probe Interval",
           "description": "the interval of probe"
         },
@@ -1607,6 +1612,11 @@
           "title": "Environment Variables",
           "description": "environment variables for the command"
         },
+        "nolinger": {
+          "type": "boolean",
+          "title": "Disable SO_LINGER",
+          "description": "Disable SO_LINGER TCP flag"
+        },
         "contain": {
           "type": "string",
           "title": "Contain Text",
@@ -1622,6 +1632,11 @@
           "title": "regex",
           "description": "use regular expression to check the contain or not contain"
         },
+        "with_output": {
+          "type": "boolean",
+          "title": "with_output",
+          "description": "generate error message with the output"
+        },
         "bastion": {
           "type": "string",
           "title": "Bastion Server",
@@ -1634,7 +1649,10 @@
         },
         "disks": {
           "items": {
-            "type": "string"
+            "type": "string",
+            "examples": [
+              "[\"/\""
+            ]
           },
           "type": "array",
           "title": "Disks",
@@ -1646,7 +1664,8 @@
       "required": [
         "name",
         "alert",
-        "host"
+        "host",
+        "nolinger"
       ]
     },
     "probe_host_Threshold": {
@@ -1667,10 +1686,8 @@
           "description": "Disk threshold (default: 0.95)"
         },
         "load": {
-          "patternProperties": {
-            ".*": {
-              "type": "number"
-            }
+          "additionalProperties": {
+            "type": "number"
           },
           "type": "object",
           "title": "Load average threshold",
@@ -1697,11 +1714,13 @@
         },
         "timeout": {
           "type": "string",
+          "format": "duration",
           "title": "Probe Timeout",
           "description": "the timeout of probe"
         },
         "interval": {
           "type": "string",
+          "format": "duration",
           "title": "Probe Interval",
           "description": "the interval of probe"
         },
@@ -1735,6 +1754,7 @@
         },
         "proxy": {
           "type": "string",
+          "format": "url",
           "title": "Proxy Server",
           "description": "proxy to use for HTTP requests"
         },
@@ -1760,10 +1780,8 @@
           "description": "HTTP method to use for HTTP requests"
         },
         "headers": {
-          "patternProperties": {
-            ".*": {
-              "type": "string"
-            }
+          "additionalProperties": {
+            "type": "string"
           },
           "type": "object",
           "title": "HTTP Headers",
@@ -1773,6 +1791,21 @@
           "type": "string",
           "title": "HTTP Body",
           "description": "HTTP body to use for HTTP requests"
+        },
+        "limit_redirects": {
+          "type": "boolean",
+          "title": "Limit Redirects",
+          "description": "Limit number of redirects to follow"
+        },
+        "max_redirects": {
+          "type": "integer",
+          "title": "Max Redirects",
+          "description": "Max redirects to follow"
+        },
+        "nolinger": {
+          "type": "boolean",
+          "title": "Disable SO_LINGER",
+          "description": "Disable SO_LINGER TCP flag"
         },
         "contain": {
           "type": "string",
@@ -1788,6 +1821,11 @@
           "type": "boolean",
           "title": "regex",
           "description": "use regular expression to check the contain or not contain"
+        },
+        "with_output": {
+          "type": "boolean",
+          "title": "with_output",
+          "description": "generate error message with the output"
         },
         "eval": {
           "$ref": "#/$defs/eval_Evaluator",
@@ -1841,7 +1879,8 @@
       "required": [
         "name",
         "alert",
-        "url"
+        "url",
+        "nolinger"
       ]
     },
     "probe_ping_Ping": {
@@ -1861,11 +1900,13 @@
         },
         "timeout": {
           "type": "string",
+          "format": "duration",
           "title": "Probe Timeout",
           "description": "the timeout of probe"
         },
         "interval": {
           "type": "string",
+          "format": "duration",
           "title": "Probe Interval",
           "description": "the interval of probe"
         },
@@ -1906,6 +1947,7 @@
         "lost": {
           "type": "number",
           "maximum": 1,
+          "minimum": 0,
           "title": "Lost Threshold",
           "description": "The threshold of packet loss",
           "default": 0
@@ -1944,11 +1986,13 @@
         },
         "timeout": {
           "type": "string",
+          "format": "duration",
           "title": "Probe Timeout",
           "description": "the timeout of probe"
         },
         "interval": {
           "type": "string",
+          "format": "duration",
           "title": "Probe Interval",
           "description": "the interval of probe"
         },
@@ -2014,6 +2058,11 @@
           "type": "boolean",
           "title": "regex",
           "description": "use regular expression to check the contain or not contain"
+        },
+        "with_output": {
+          "type": "boolean",
+          "title": "with_output",
+          "description": "generate error message with the output"
         }
       },
       "additionalProperties": false,
@@ -2098,11 +2147,13 @@
         },
         "timeout": {
           "type": "string",
+          "format": "duration",
           "title": "Probe Timeout",
           "description": "the timeout of probe"
         },
         "interval": {
           "type": "string",
+          "format": "duration",
           "title": "Probe Interval",
           "description": "the interval of probe"
         },
@@ -2175,6 +2226,11 @@
           "title": "Environment Variables",
           "description": "environment variables for the command"
         },
+        "nolinger": {
+          "type": "boolean",
+          "title": "Disable SO_LINGER",
+          "description": "Disable SO_LINGER TCP flag"
+        },
         "contain": {
           "type": "string",
           "title": "Contain Text",
@@ -2190,6 +2246,11 @@
           "title": "regex",
           "description": "use regular expression to check the contain or not contain"
         },
+        "with_output": {
+          "type": "boolean",
+          "title": "with_output",
+          "description": "generate error message with the output"
+        },
         "bastion": {
           "type": "string",
           "title": "Bastion Server",
@@ -2201,7 +2262,8 @@
       "required": [
         "name",
         "alert",
-        "host"
+        "host",
+        "nolinger"
       ]
     },
     "probe_tcp_TCP": {
@@ -2221,11 +2283,13 @@
         },
         "timeout": {
           "type": "string",
+          "format": "duration",
           "title": "Probe Timeout",
           "description": "the timeout of probe"
         },
         "interval": {
           "type": "string",
+          "format": "duration",
           "title": "Probe Interval",
           "description": "the interval of probe"
         },
@@ -2262,6 +2326,11 @@
           "format": "hostname",
           "title": "Proxy",
           "description": "The proxy to use"
+        },
+        "nolinger": {
+          "type": "boolean",
+          "title": "Disable SO_LINGER",
+          "description": "Disable SO_LINGER TCP flag"
         }
       },
       "additionalProperties": false,
@@ -2269,7 +2338,8 @@
       "required": [
         "name",
         "alert",
-        "host"
+        "host",
+        "nolinger"
       ]
     },
     "probe_tls_TLS": {
@@ -2289,11 +2359,13 @@
         },
         "timeout": {
           "type": "string",
+          "format": "duration",
           "title": "Probe Timeout",
           "description": "the timeout of probe"
         },
         "interval": {
           "type": "string",
+          "format": "duration",
           "title": "Probe Interval",
           "description": "the interval of probe"
         },
@@ -2336,6 +2408,11 @@
           "title": "Insecure Skip Verify",
           "description": "Whether to skip verifying the certificate chain and host name"
         },
+        "nolinger": {
+          "type": "boolean",
+          "title": "Disable SO_LINGER",
+          "description": "Disable SO_LINGER TCP flag"
+        },
         "root_ca_pem_path": {
           "type": "string",
           "title": "Root CA PEM Path",
@@ -2362,7 +2439,8 @@
       "required": [
         "name",
         "alert",
-        "host"
+        "host",
+        "nolinger"
       ]
     },
     "probe_websocket_WebSocket": {
@@ -2382,11 +2460,13 @@
         },
         "timeout": {
           "type": "string",
+          "format": "duration",
           "title": "Probe Timeout",
           "description": "the timeout of probe"
         },
         "interval": {
           "type": "string",
+          "format": "duration",
           "title": "Probe Interval",
           "description": "the interval of probe"
         },
@@ -2420,14 +2500,13 @@
         },
         "proxy": {
           "type": "string",
+          "format": "url",
           "title": "Proxy Server",
           "description": "proxy to use for the HTTP request"
         },
         "headers": {
-          "patternProperties": {
-            ".*": {
-              "type": "string"
-            }
+          "additionalProperties": {
+            "type": "string"
           },
           "type": "object",
           "title": "HTTP Headers",

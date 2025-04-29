@@ -50,6 +50,9 @@ type HTTP struct {
 	Method            string            `yaml:"method,omitempty" json:"method,omitempty" jsonschema:"enum=GET,enum=POST,enum=DELETE,enum=PUT,enum=HEAD,enum=OPTIONS,enum=PATCH,enum=TRACE,enum=CONNECT,title=HTTP Method,description=HTTP method to use for HTTP requests"`
 	Headers           map[string]string `yaml:"headers,omitempty" json:"headers,omitempty" jsonschema:"title=HTTP Headers,description=HTTP headers to use for HTTP requests"`
 	Body              string            `yaml:"body,omitempty" json:"body,omitempty" jsonschema:"title=HTTP Body,description=HTTP body to use for HTTP requests"`
+	LimitRedirects    bool              `yaml:"limit_redirects,omitempty" json:"limit_redirects,omitempty" jsonschema:"title=Limit Redirects,description=Limit number of redirects to follow, default=false"`
+	MaxRedirects      int               `yaml:"max_redirects,omitempty" json:"max_redirects,omitempty" jsonschema:"title=Max Redirects,description=Max redirects to follow, default=0"`
+	NoLinger          bool              `yaml:"nolinger" json:"nolinger" jsonschema:"format=nolinger,title=Disable SO_LINGER,description=Disable SO_LINGER TCP flag, default=false"`
 
 	// Output Text Checker
 	probe.TextChecker `yaml:",inline"`
@@ -124,9 +127,12 @@ func (h *HTTP) Config(gConf global.ProbeSettings) error {
 			tcpConn, ok := conn.(*net.TCPConn)
 			if ok {
 				log.Debugf("[%s / %s] dial %s:%s", h.ProbeKind, h.ProbeName, network, addr)
-				tcpConn.SetLinger(0) // disable the default TCP delayed-close behavior,
-				// which send the RST to the peer when the connection is closed.
-				// this would remove the TIME_wAIT state of the TCP connection.
+				if !h.NoLinger {
+					// disable the default TCP delayed-close behavior,
+					// which send the RST to the peer when the connection is closed.
+					// this would remove the TIME_WAIT state of the TCP connection.
+					tcpConn.SetLinger(0)
+				}
 				return tcpConn, nil
 			}
 			return conn, nil
@@ -148,6 +154,15 @@ func (h *HTTP) Config(gConf global.ProbeSettings) error {
 	h.client = &http.Client{
 		Timeout:   h.Timeout(),
 		Transport: transport,
+	}
+
+	if h.LimitRedirects {
+		h.client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+			if len(via) > h.MaxRedirects {
+				return http.ErrUseLastResponse
+			}
+			return nil
+		}
 	}
 
 	if !checkHTTPMethod(h.Method) {
@@ -273,6 +288,9 @@ func (h *HTTP) DoProbe() (bool, string) {
 		}
 	}
 	if !valid {
+		if h.WithOutput {
+			return false, fmt.Sprintf("HTTP Status Code is %d. It missed in %v. Response:\n[%s]", resp.StatusCode, h.SuccessCode, string(response))
+		}
 		return false, fmt.Sprintf("HTTP Status Code is %d. It missed in %v", resp.StatusCode, h.SuccessCode)
 	}
 
